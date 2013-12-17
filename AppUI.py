@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'AppUI.ui'
 #
-# Created: Fri Sep 06 19:18:58 2013
-#      by: PyQt4 UI code generator 4.10.3
+# Created: Tue Dec 17 23:11:24 2013
+#      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -233,6 +233,18 @@ class Ui_MainWindow(object):
         self.verticalLayout_4.addLayout(self.formLayout)
         self.horizontalLayout.addLayout(self.verticalLayout_4)
         self.tabWidget.addTab(self.tab_conf, _fromUtf8(""))
+        self.tab = QtGui.QWidget()
+        self.tab.setObjectName(_fromUtf8("tab"))
+        self.formLayout_2 = QtGui.QFormLayout(self.tab)
+        self.formLayout_2.setObjectName(_fromUtf8("formLayout_2"))
+        self.label_2 = QtGui.QLabel(self.tab)
+        self.label_2.setObjectName(_fromUtf8("label_2"))
+        self.formLayout_2.setWidget(0, QtGui.QFormLayout.LabelRole, self.label_2)
+        self.spinBox_COMport = QtGui.QSpinBox(self.tab)
+        self.spinBox_COMport.setProperty("value", 16)
+        self.spinBox_COMport.setObjectName(_fromUtf8("spinBox_COMport"))
+        self.formLayout_2.setWidget(0, QtGui.QFormLayout.FieldRole, self.spinBox_COMport)
+        self.tabWidget.addTab(self.tab, _fromUtf8(""))
         self.verticalLayout.addWidget(self.tabWidget)
         self.txt_status = QtGui.QPlainTextEdit(self.centralwidget)
         self.txt_status.setEnabled(True)
@@ -256,7 +268,7 @@ class Ui_MainWindow(object):
         MainWindow.setMenuBar(self.menubar)
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -268,7 +280,7 @@ class Ui_MainWindow(object):
         self.chk_drum.setText(_translate("MainWindow", "Drum rpm", None))
         self.chk_temp.setText(_translate("MainWindow", "Temperature", None))
         self.chk_pres.setText(_translate("MainWindow", "Pressure", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_samples), _translate("MainWindow", "Monitor", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_samples), _translate("MainWindow", "Loggning", None))
         self.btn_up.setText(_translate("MainWindow", "up", None))
         self.btn_down.setText(_translate("MainWindow", "down", None))
         self.btn_set.setText(_translate("MainWindow", "set", None))
@@ -283,6 +295,8 @@ class Ui_MainWindow(object):
         self.label.setText(_translate("MainWindow", "Parameters", None))
         self.label_raw.setText(_translate("MainWindow", "Raw value", None))
         self.label_3.setText(_translate("MainWindow", "TextLabel", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_conf), _translate("MainWindow", "Inställningar", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_conf), _translate("MainWindow", "Paramterar", None))
+        self.label_2.setText(_translate("MainWindow", "COM port", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("MainWindow", "Inställningar", None))
 
 from guiqwtWidget import myCurveWidget
