@@ -90,6 +90,7 @@ class Comm(QtCore.QThread):
       # Block until command is given
       try:
         cmd = self.q_command.get()
+        print("Send command %d" % cmd);
       except Exception as e:
         print(e)
       
