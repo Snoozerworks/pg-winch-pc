@@ -26,6 +26,9 @@
     </property>
     <item>
      <widget class="QTabWidget" name="tabWidget">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
         <horstretch>0</horstretch>
@@ -33,9 +36,12 @@
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tab_samples">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <attribute name="title">
         <string>Loggning</string>
        </attribute>
@@ -46,7 +52,7 @@
            <number>4</number>
           </property>
           <item>
-           <widget class="myCurveWidget" name="graph"/>
+           <widget class="TimePlot" name="graph"/>
           </item>
           <item>
            <widget class="QSlider" name="hslider">
@@ -180,7 +186,10 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_conf">
+      <widget class="QWidget" name="tab_params">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <attribute name="title">
         <string>Paramterar</string>
        </attribute>
@@ -303,6 +312,26 @@
               </property>
              </widget>
             </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_raw">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Raw value</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QLabel" name="label_3">
+              <property name="text">
+               <string>TextLabel</string>
+              </property>
+             </widget>
+            </item>
             <item row="3" column="0">
              <widget class="QLabel" name="label_limits">
               <property name="font">
@@ -363,27 +392,20 @@
              </widget>
             </item>
             <item row="5" column="1">
-             <widget class="QListWidget" name="lst_params"/>
-            </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="label_raw">
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
+             <widget class="QListWidget" name="lst_params">
+              <property name="verticalScrollBarPolicy">
+               <enum>Qt::ScrollBarAsNeeded</enum>
               </property>
-              <property name="text">
-               <string>Raw value</string>
+              <property name="autoScroll">
+               <bool>true</bool>
+              </property>
+              <property name="sortingEnabled">
+               <bool>false</bool>
               </property>
              </widget>
             </item>
-            <item row="2" column="1">
-             <widget class="QLabel" name="label_3">
-              <property name="text">
-               <string>TextLabel</string>
-              </property>
-             </widget>
+            <item row="6" column="1">
+             <widget class="QTableView" name="tbl_params"/>
             </item>
            </layout>
           </item>
@@ -391,11 +413,14 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab">
+      <widget class="QWidget" name="tab_settings">
        <attribute name="title">
         <string>Inställningar</string>
        </attribute>
        <layout class="QFormLayout" name="formLayout_2">
+        <property name="fieldGrowthPolicy">
+         <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+        </property>
         <item row="0" column="0">
          <widget class="QLabel" name="label_2">
           <property name="text">
@@ -407,6 +432,27 @@
          <widget class="QSpinBox" name="spinBox_COMport">
           <property name="value">
            <number>16</number>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Bluetooth MAC-address</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="lineEdit_btmac">
+          <property name="text">
+           <string>00:06:66:43:11:8D</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QPushButton" name="btn_connect">
+          <property name="text">
+           <string>Connect</string>
           </property>
          </widget>
         </item>
@@ -441,16 +487,16 @@
      <x>0</x>
      <y>0</y>
      <width>600</width>
-     <height>21</height>
+     <height>29</height>
     </rect>
    </property>
   </widget>
  </widget>
  <customwidgets>
   <customwidget>
-   <class>myCurveWidget</class>
+   <class>TimePlot</class>
    <extends>QGraphicsView</extends>
-   <header>guiqwtWidget</header>
+   <header>TimePlot.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>
