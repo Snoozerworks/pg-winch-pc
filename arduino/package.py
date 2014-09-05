@@ -96,6 +96,31 @@ class Parameter():
         
         return to_lo + (v - lo) * (to_hi - to_lo) / (hi - lo)
 
+
+    def mapval_inv(self, v):
+        """ Returns a value mapped from (low_map,high_map) to (low,high)
+        using linear interpolation. If high_map=low_map method returns 0.
+        If v is outside range (low_map,high_map) then either low or high
+        will be returned. 
+        
+        :type v: float
+            Value to map
+        :rtype: int
+            Mapped value.
+        """                
+        if self.data["low_map"] == self.data["high_map"]:
+            return 0
+        
+        if v<self.data["low_map"]: return self.data["low"]
+        if v>self.data["high_map"]: return self.data["high"]
+        
+        lo = self.data["low_map"]*1.0
+        hi = self.data["high_map"]*1.0
+        to_lo = self.data["low"]*1.0
+        to_hi = self.data["high"]*1.0
+        
+        return int( to_lo + (v - lo) * (to_hi - to_lo) / (hi - lo) ) 
+
     
     def to_csv(self):
         """ Return fields as a comma separated string. """

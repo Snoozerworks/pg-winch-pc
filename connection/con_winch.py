@@ -137,8 +137,11 @@ class ConWinch(QtCore.QObject):
 
 
 	def _ReadItem(self):
-		""" Waits for n number of bytes and return them. 
-		Returns number of bytes read or None upon timeout.		
+		"""
+		Read connection to get a parameter or sample.
+		Returns number of bytes read or None upon timeout.
+		:rtype: int
+			Number of bytes read.
 		"""	
 		
 		try:
@@ -147,11 +150,11 @@ class ConWinch(QtCore.QObject):
 			pass
 
 
-		chunk1	 	 = bytearray(35)  # Received byte storage
-		received 	 = 0  # Number of bytes received
-		expect 		 = 11  # Number of bytes received
+		mv_chunk1	= memoryview(bytearray(35))  # Received byte storage
+		received 	= 0  # Number of bytes received
+		expect 		= 11  # Number of bytes to fetch
 
-		mv_chunk1 = memoryview(chunk1)
+# 		mv_chunk1 = memoryview(chunk1)
 
 		try:
 			received += ConWinch.sock.recv_into(mv_chunk1, expect)
@@ -161,10 +164,12 @@ class ConWinch(QtCore.QObject):
 
 
 		m = Modes.getMode(mv_chunk1[0])
-		if m == Modes.CONFIG_IS or m == Modes.CONFIG_OS:
-			# Expect a parameter of 35 bytes. Get remaining bytes.
-			expect = 35
+		
+		# If in configuration mode, expect a parameter of 35 bytes. 
+		if m == Modes.CONFIG_IS or m == Modes.CONFIG_OS: expect = 35
+			
 
+		# Fetch remaining bytes
 		while expect > received:			
 			try:
 				received += ConWinch.sock.recv_into(mv_chunk1[received:])
@@ -362,6 +367,7 @@ class ConWinch(QtCore.QObject):
 			
 		# Start sync. 
 		self._set_state(ConStates.STATE_SYNCS)
+		self.sigSyncs.emit()
 		# Clear list of parameter indices...
 		ConWinch._param_indices.clear()
 		# ...and start getting parameters

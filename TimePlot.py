@@ -3,8 +3,18 @@ Created on 21 aug 2014
 
 @author: markus
 '''
+
+from enum import Enum, unique
 from pyqtgraph import PlotWidget
 from dataLog import DataLog
+
+@unique
+class PlotSignals(Enum):
+    TACH_PUMP = 1
+    TACH_DRUM = 2
+    PRES = 3
+    TEMP = 4
+    
 
 class TimePlot(PlotWidget):
     """
@@ -13,6 +23,10 @@ class TimePlot(PlotWidget):
 
     def __init__(self, params):
         super(TimePlot, self).__init__(params);
+        self.signals = [PlotSignals.TACH_DRUM,
+                         PlotSignals.TACH_PUMP,
+                         PlotSignals.PRES,
+                         PlotSignals.TEMP]
         self._log = DataLog(1);
 
         
@@ -21,10 +35,26 @@ class TimePlot(PlotWidget):
         self._log.sigSampleAdded.connect(self.updateGraph);
         self.updateGraph();
         
+
+    def show_signal(self, signal, disp=True):
+        """
+        Show signals named in signals.
+        :type signals: list
+        """
+        if disp and signal not in self.signals:
+            self.signals.append(signal)
+        elif not disp and signal in self.signals:
+            self.signals.remove(signal)
+        
         
     def updateGraph(self):
         self.getPlotItem().clear()
-        self.getPlotItem().plot(self._log.data["tach_pump"]);
-        self.getPlotItem().plot(self._log.data["tach_drum"]);
-        self.getPlotItem().plot(self._log.data["pres"]);
+        if PlotSignals.TACH_DRUM in self.signals:
+            self.getPlotItem().plot(self._log.samples["tach_drum"], pen={'color': (1,4), "width": 3});
+        if PlotSignals.TACH_PUMP in self.signals:
+            self.getPlotItem().plot(self._log.samples["tach_pump"], pen={'color': (2,4), "width": 3});
+        if PlotSignals.PRES in self.signals:            
+            self.getPlotItem().plot(self._log.samples["pres"], pen={'color': (3,4), "width": 3});
+        if PlotSignals.TEMP in self.signals:            
+            self.getPlotItem().plot(self._log.samples["temp"], pen={'color': (4,4), "width": 3});
         

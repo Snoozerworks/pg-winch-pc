@@ -17,10 +17,11 @@ from arduino.package import Parameter, Sample
 import dataLog as log
 import os
 import fnmatch
+from TimePlot import TimePlot, PlotSignals
 
 
 LOG_LENGTH 	 = 100  # Max samples in log stack
-GRAPH_LEN 	 = 100  # Max samples to show in graph	
+GRAPH_LEN 	 = 50  # Max samples to show in graph	
 
 
 
@@ -60,7 +61,6 @@ class _WorkerThread(QtCore.QThread):
 		self.sig_up.connect(bt.slot_up)
 		self.sig_down.connect(bt.slot_down)
 		
-# 		self.sig_setp[int,int].connect(lambda x,y:print("Hej {},{}".format(x,y)))
 
 
 		
@@ -89,23 +89,22 @@ class StartQT4(QtGui.QMainWindow):
 		# Connect gui buttons signals 
 		self.ui.btn_connect.clicked.connect(_worker_thread.sig_connect.emit)
 		self.ui.btn_get.clicked.connect(_worker_thread.sig_sample.emit)
-		self.ui.btn_set.clicked.connect(_worker_thread.sig_select.emit)
+		self.ui.btn_select.clicked.connect(_worker_thread.sig_select.emit)
 		self.ui.btn_up.clicked.connect(lambda : self._step_param("+"))
 		self.ui.btn_down.clicked.connect(lambda : self._step_param("-"))
 		self.ui.btn_sync.clicked.connect(_worker_thread.sig_sync.emit)
+		self.ui.btn_save.clicked.connect(self.log.Save)
 		
-
 		# Connect graph line checkboxes
-		self.ui.chk_pump.clicked.connect(lambda checked: self.on_show_line(0, checked))
-		self.ui.chk_drum.clicked.connect(lambda checked: self.on_show_line(1, checked))
-		self.ui.chk_temp.clicked.connect(lambda checked: self.on_show_line(2, checked))
-		self.ui.chk_pres.clicked.connect(lambda checked: self.on_show_line(3, checked))
+		self.ui.chk_pump.clicked.connect(lambda checked: self.ui.graph.show_signal(PlotSignals.TACH_DRUM, checked))
+		self.ui.chk_drum.clicked.connect(lambda checked: self.ui.graph.show_signal(PlotSignals.TACH_PUMP, checked))
+		self.ui.chk_pres.clicked.connect(lambda checked: self.ui.graph.show_signal(PlotSignals.PRES, checked))
+		self.ui.chk_temp.clicked.connect(lambda checked: self.ui.graph.show_signal(PlotSignals.TEMP, checked))
 		
 		# Connect slider
 		self.ui.hslider.valueChanged.connect(self.on_slider_changed)
 
 		# Parameter list
-		self.ui.lst_params.itemSelectionChanged.connect(self.on_lst_selected)
 		self.ui.tbl_params.setModel(self.log.param_mdl)
 			
 		# Create graph
@@ -123,6 +122,10 @@ class StartQT4(QtGui.QMainWindow):
 		self.bt.sigConnectionTimeout.connect(self.on_connection_timeout)
 		self.bt.sigPackageTimeout.connect(self.on_package_timeout)
 
+				
+		# Connect log  signals
+		self.log.sigParamChange[int, int].connect(_worker_thread.sig_setp[int,int])
+				
 				
 		# Check for saved .npz files.
 		self.getFileCount()
@@ -152,21 +155,27 @@ class StartQT4(QtGui.QMainWindow):
 
 
 
-	def _step_param(self, direction):
-		""" Increase or decrease currently selected parameter. 
-		direction : string
-			Increase with "+" or decrease with "-"
-		"""
-		item = self.ui.lst_params.currentItem()
-		if item == None: return
-		index = item.data(QtCore.Qt.UserRole)
-		param = self.log.getParameter(index)
-		nv = param["val"]
-		if direction == "+": 
-			nv += param["step"]
-		elif direction == "-": 
-			nv -= param["step"]
-		_worker_thread.sig_setp[int, int].emit(index, nv)	
+# 	def _step_param(self, direction):
+# 		""" Increase or decrease currently selected parameter. 
+# 		direction : string
+# 			Increase with "+" or decrease with "-"
+# 		"""
+# 		return
+# 	
+# 		inds = self.ui.tbl_params.selectedIndexes()
+# 		if len(inds)>1: return
+# 		inds[0].row()
+# 		
+# 		item = self.ui.lst_params.currentItem()
+# 		if item == None: return
+# 		index = item.data(QtCore.Qt.UserRole)
+# 		param = self.log.getParameter(index)
+# 		nv = param["val"]
+# 		if direction == "+": 
+# 			nv += param["step"]
+# 		elif direction == "-": 
+# 			nv -= param["step"]
+# 		_worker_thread.sig_setp[int, int].emit(index, nv)	
 		
 	
 	def on_slider_changed(self, v):
@@ -174,13 +183,6 @@ class StartQT4(QtGui.QMainWindow):
 # 		self.ui.graph.setRange(v, GRAPH_LEN)
 # 		self.ui.graph.updateY()
 
-
-	def on_lst_selected(self):
-		item = self.ui.lst_params.currentItem()
-		if item == None: return		
-		index = item.data(QtCore.Qt.UserRole)			
-		self.showParam(self.log.params[index])
-			
 	
 	def on_show_line(self, lineno, visible):
 		self.ui.graph.showLine(lineno, visible)
@@ -189,43 +191,6 @@ class StartQT4(QtGui.QMainWindow):
 	def set_status(self, msg):
 		self.ui.txt_status.setPlainText(msg)
 				
-
-	def add_param_lst(self, p):
-		frmt = "{p[index]} - {p[descr]} {va:5.1f} ({lm},{hm})"
-		txt = frmt.format(p=p,
-						va=p.mapval(p["val"]),
-						lm=p["low_map"],
-						hm=p["high_map"])
-						
-		item = self.ui.lst_params.item(p["index"])
-		if item == None:		
-			item = QtGui.QListWidgetItem()
-			item.setData(QtCore.Qt.DisplayRole, txt)
-			item.setData(QtCore.Qt.UserRole, p["index"])
-			self.ui.lst_params.insertItem(p["index"], item)
-		else:
-			item.setData(QtCore.Qt.DisplayRole, txt)
-			item.setData(QtCore.Qt.UserRole, p["index"])		
-		
-		
-		
-		
-# 		item = QtGui.QListWidgetItem(self.ui.lst_params)		
-# 		item.setData(QtCore.Qt.DisplayRole, txt)
-# 		item.setData(QtCore.Qt.UserRole, p["index"])
-
-		
-
-	def showParam(self, p):
-		self.ui.spnbox_param.setRange(p.mapval(p["low"]), p.mapval(p["high"]))
-		self.ui.spnbox_param.setSingleStep(p.mapval(p["step"]))
-		self.ui.spnbox_param.setValue(p.mapval(p["val"]))
-		# self.ui.lbl_descr.setText("%d - %s" % (p["index"], unicode(p["descr"], 'utf-8')))
-		self.ui.lbl_descr.setText("{index:2d} - {descr}".format_map(p))
-		self.ui.label_3.setText(str(p["val"]))
-		self.ui.lbl_lim.setText("[{low}, {high}]".format_map(p))
-		self.ui.lbl_step.setText(str(p["step"]))
-
 
 	def on_package_received(self, package):
 		if (len(package) == Sample.SIZE):
@@ -239,9 +204,7 @@ class StartQT4(QtGui.QMainWindow):
 			p = Parameter()
 			p.Parse(package)
 			self.ui.txt_status.setPlainText(str(p))
-			self.showParam(p)
 			self.log.addParameter(p)
-			self.add_param_lst(p)
 		else:
 			print("Received unknown data")
 			
@@ -277,7 +240,7 @@ class StartQT4(QtGui.QMainWindow):
 		self.ui.txt_status.appendPlainText("Samples")
 
 	def on_stopped(self):
-		self.ui.btn_get.setText("Get")
+		self.ui.btn_get.setText("Sample")
 		self.ui.btn_get.clicked.disconnect()
 		self.ui.btn_get.clicked.connect(_worker_thread.sig_sample.emit)
 		self.ui.txt_status.appendPlainText("Stopped")
@@ -285,7 +248,6 @@ class StartQT4(QtGui.QMainWindow):
 
 	def closeEvent(self, event):
 		_worker_thread.quit()
-# 		self.queue_command(Commands._CLOSE)
 		
 
 if __name__ == "__main__":

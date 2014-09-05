@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 
+import os
+import locale  
 import sys
 import numpy as np
 from arduino.package import Sample, Parameter
 from PyQt4 import QtCore
 from PyQt4.QtCore import QObject, QModelIndex
 from PyQt4.Qt import Qt
+from numpy import select
+from _datetime import datetime
 
 # import from PyQt4.Qt as Qt
 # from guidata.qt import QtCore
@@ -14,19 +18,22 @@ from PyQt4.Qt import Qt
 class DataLog(QObject):
 	""" Keeps data to plot """
 	
-	sigSampleAdded = QtCore.pyqtSignal();
-	sigParamAdded = QtCore.pyqtSignal();
-	
+	sigSampleAdded 	 = QtCore.pyqtSignal();
+	sigParamAdded 	 = QtCore.pyqtSignal();
+	sigParamChange   = QtCore.pyqtSignal(int, int);  # index, value
+
+
 	def __init__(self, size):
 		super().__init__()
 
 		self.size		 = size  # max number of samples in record 
-		self.length	 = 0  # current number of samples in record
-		self.data		 = np.zeros(self.size, dtype=Sample.data_type) 
-		self.recordno = 0
-		self.params = {}
+		self.length		 = 0  # current number of samples in record
+		self.samples	 = np.zeros(self.size, dtype=Sample.data_type) 
+		self.recordno	 = 0
+		self.params 	 = {}  # Dict of parameters with index as key
+		self._param_keys = []  # List of sorted parameter indices in .params 
 		self.reset()
-		self.param_mdl = dataParamModel(self)
+		self.param_mdl	 = dataParamModel(self)
 		
 		
 	def addSample(self, sample):
@@ -34,10 +41,10 @@ class DataLog(QObject):
 		self.length = min(self.length + 1, self.size)
 		
 		# Forward data by one...
-		self.data = np.roll(self.data, 1, 0)
+		self.samples = np.roll(self.samples, 1, 0)
 		
 		# ...then prepend the new sample
-		self.data[0] = sample.data
+		self.samples[0] = sample.data
 
 		# Emit the sigSampleAdded signal 		
 		self.sigSampleAdded.emit();
@@ -45,14 +52,21 @@ class DataLog(QObject):
 
 	def addParameter(self, p):
 		""" Add/update a winch parameter to the log. """
-		self.params[p['index']] = p
+		self.params[p['index']] = p		
+		self._param_keys = sorted(self.params.keys())		
 		self.sigParamAdded.emit();
 
 
 	def getParameter(self, index):
-		""" Get parameter with specified index. """		
+		""" Get parameter with specified index. """
 		return self.params[index]
-		
+
+	def updateParameter(self, index, value):
+		""" Update parameter value """
+		if index not in self.params: return False
+		raw = self.params[index].mapval_inv(value)
+		self.sigParamChange[int,int].emit(index, raw)
+
 
 	def reset(self):
 		""" Empty the samples log. """
@@ -70,9 +84,25 @@ class DataLog(QObject):
 	def Save(self):
 		""" Save log to disk. """
 		self.recordno += 1 
-		fname = "{}/log/record_{:03d}.npz".format(sys.path[0], self.recordno)
+		now = datetime.today()
+		path = "{}/log".format(sys.path[0])
+		fname = "{}/rec_{}.csv".format(path, now.strftime("%Y%m%dT%H%M%S"))
 		print("Save %d samples in file %s" % (self.length, fname))
-		np.savez(fname, samples=self.data[0:self.length], parameters=self.params)	
+		
+		try:
+			os.makedirs(path)
+		except OSError as exception:
+			if exception.errno != os.errno.EEXIST:
+				raise
+			# Directory already exists
+
+		with open(fname, mode='wt', encoding='utf-8') as f:			 
+			for sample in self.samples:
+				S = Sample(sample)
+				f.write(S.to_csv())
+				f.write("\n")
+		
+		#np.savez(fname, samples=self.samples[0:self.length], parameters=self.params)	
 		return fname				
 	
 	
@@ -100,11 +130,8 @@ class DataLog(QObject):
 		
 		
 class dataParamModel(QtCore.QAbstractTableModel):
-	
 	# Column number of value field
-	EDITABLE_COL_NO = 2
-	_header_names 	 = ("Namn", "Värde", "Min", "Max", "Steg")
-	_header_fields 	 = ("descr", "val", "low", "high", "step")
+	EDITABLE_COL_NO = 1
 
 	def __init__(self, log):
 		super().__init__()
@@ -112,10 +139,7 @@ class dataParamModel(QtCore.QAbstractTableModel):
 		log.sigParamAdded.connect(self._on_added_param)  
 		
 	def _on_added_param(self):
-		si = self.index(0, 0)
-		ei = self.index(len(self.log.params), len(dataParamModel._header_fields))
 		self.reset()
-		#self.dataChanged.emit(si,ei)	
 		
 	# int QAbstractItemModel::rowCount ( const QModelIndex & parent = QModelIndex() ) const [pure virtual]	
 	def rowCount(self, parent=QModelIndex()):
@@ -127,35 +151,69 @@ class dataParamModel(QtCore.QAbstractTableModel):
 	# int QAbstractItemModel::columnCount ( const QModelIndex & parent = QModelIndex() ) const [pure virtual]
 	def columnCount(self, parent=QModelIndex()):
 		if parent.isValid(): return 0
-		return len(dataParamModel._header_fields)
+		return 4
 	
 	# QVariant QAbstractItemModel::data ( const QModelIndex & index, int role = Qt::DisplayRole ) const [pure virtual]	
 	def data(self, index, role=Qt.DisplayRole):
-		':type index: QModelIndex'
-		if role==Qt.DisplayRole or role==Qt.EditRole: 
-			c = index.column()
-			r = index.row()
-			f = dataParamModel._header_fields[c]
-			d = self.log.getParameter(r)[f]
-			return str(d)
+		"""
+		:type index: QModelIndex
+		"""
+		
+		r = index.row()
+		c = index.column()
+		index = self.log._param_keys[r]
+		
+		if role == Qt.DisplayRole or role == Qt.EditRole: 
+			p = self.log.getParameter(index)
+			
+			if c==0:
+				return p["descr"]
+			elif c==1:
+				return "{:0.1f}".format(p.mapval(p["val"]))
+			elif c==2:
+				return "[{:d}, {:d}]".format(p["low_map"], p["high_map"])
+			elif c==3:
+				return "{:0.1f}".format(p.mapval(p["step"]))
+			else:
+				return None
 		else:
 			return None
 		
-				
+
 	# QVariant QAbstractItemModel::headerData ( int section, Qt::Orientation orientation, int role = Qt::DisplayRole ) const [virtual]
 	def headerData(self, section, orientation, role=Qt.DisplayRole):
 		if role == Qt.DisplayRole and orientation == Qt.Horizontal:
-			return dataParamModel._header_names[section]
-		return QtCore.QAbstractTableModel.headerData(self, section, orientation, role)
+			if section==0:
+				return "Namn"
+			elif section==1:
+				return "Värde"
+			elif section==2:
+				return "[Min, Max]"
+			elif section==3:
+				return "Steg"
+			else:
+				return None
+		else:
+			return QtCore.QAbstractTableModel.headerData(self, section, orientation, role)
 		
 	
 	# bool QAbstractItemModel::setData ( const QModelIndex & index, const QVariant & value, int role = Qt::EditRole ) [virtual]	
 	def setData(self, index, value, role=Qt.EditRole):
-		':type index: QModelIndex'
-		':type value: int'
-		self.log.getParameter(index.row())
-		self.dataChanged.emit(index,index)
-		return True
+		"""
+		Called when data edited in table.
+		
+		:type index: QModelIndex
+		:type value: string
+		:type role: int
+		:rtype: bool 
+		"""
+		try:
+			value = locale.atof(value)
+		except ValueError:
+			return False	
+		k = self.log._param_keys[index.row()]		
+		self.log.updateParameter(k, value)
+		return False
 	
 	
 	# Qt::ItemFlags QAbstractItemModel::flags ( const QModelIndex & index ) const [virtual]
@@ -166,7 +224,7 @@ class dataParamModel(QtCore.QAbstractTableModel):
 		if index.column() == dataParamModel.EDITABLE_COL_NO:
 			return f | Qt.ItemIsEditable | Qt.ItemIsSelectable
 		else:
-			return f
+			return Qt.NoItemFlags
 		
 	
 	# bool QAbstractItemModel::insertRows ( int row, int count, const QModelIndex & parent = QModelIndex() ) [virtual]
