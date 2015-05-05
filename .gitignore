@@ -1,4 +1,9 @@
-*.*~
+.*
+_*
+docs
+conf.py
+Makefile
+index.rst*
 *.bfproject
 *.pyc
 *.spyder*
