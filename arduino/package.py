@@ -158,9 +158,10 @@ class Sample():
         
     data_type = np.dtype([  # Data type definition of raw data
         ("mode", "u1"),
+        ("errors", "u1"),
         ("time", ">u4"),
-        ("tach_pump", "u1"),
-        ("tach_drum", "u1"),
+        ("pump_spd", "u1"),
+        ("drum_spd", "u1"),
         ("temp", ">i2"),
         ("pres", ">i2")])
     
@@ -202,24 +203,25 @@ class Sample():
         Sample._rx_time[1] = Sample._rx_time[0]
         Sample._rx_time[0] = time.time()
         
-        Sample.pump_buffer.add(self.data["tach_pump"])
-        Sample.drum_buffer.add(self.data["tach_drum"])
+        Sample.pump_buffer.add(self.data["pump_spd"])
+        Sample.drum_buffer.add(self.data["drum_spd"])
         Sample._dt = (Sample._rx_time[0] - Sample._rx_time[1]) * 1000.0
         Sample.time_buffer.add(Sample._dt)
 
 
     def to_csv(self):
         """ Return fields as a comma separated string. """
-        frmt = "{time},{mode},{tach_pump},{tach_drum},{temp},{pres}"
+        frmt = "{time},{mode},{pump_spd},{drum_spd},{temp},{pres}"
         return frmt.format_map(self)  
 
     
     def __str__(self): 
         s = "Sample - receive period {:0.0f}({:3.1f})\n".format(Sample._dt, Sample.time_buffer.sum)
         s += "    mode        : {:2d} ({})\n".format(self.data["mode"], MODE_TXT[self.data["mode"]])
+        s += "    errors      : {:b}\n".format(self.data["errors"])
         s += "    on time     : {:6d} ms\n".format(self.data["time"])
-        s += "    pump speed  : {:4d}({:4.0f}) rpm\n".format(self.data["tach_pump"], Sample.pump_buffer.sum)
-        s += "    drum speed  : {:4d}({:4.0f}) rpm\n".format(self.data["tach_drum"], Sample.drum_buffer.sum)
+        s += "    pump speed  : {:4d}({:4.0f}) rpm\n".format(self.data["pump_spd"], Sample.pump_buffer.sum)
+        s += "    drum speed  : {:4d}({:4.0f}) rpm\n".format(self.data["drum_spd"], Sample.drum_buffer.sum)
         s += "    period      : {:4.0f} ms\n".format(Sample._tx_time[0] - Sample._tx_time[1])
         s += "    temperature : {:4.0f} deg C\n".format(self.data["temp"])
         s += "    pressure    : {:4.0f} bar\n".format(self.data["pres"])

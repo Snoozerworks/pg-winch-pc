@@ -24,9 +24,9 @@ class TimePlot(PlotWidget):
     def __init__(self, params):
         super(TimePlot, self).__init__(params);
         self.signals = [PlotSignals.TACH_DRUM,
-                         PlotSignals.TACH_PUMP,
-                         PlotSignals.PRES,
-                         PlotSignals.TEMP]
+                        PlotSignals.TACH_PUMP,
+                        PlotSignals.PRES,
+                        PlotSignals.TEMP]
         self._log = DataLog(1);
 
         
@@ -50,9 +50,9 @@ class TimePlot(PlotWidget):
     def updateGraph(self):
         self.getPlotItem().clear()
         if PlotSignals.TACH_DRUM in self.signals:
-            self.getPlotItem().plot(self._log.samples["tach_drum"], pen={'color': (1,4), "width": 3});
+            self.getPlotItem().plot(self._log.samples["drum_spd"], pen={'color': (1,4), "width": 3});
         if PlotSignals.TACH_PUMP in self.signals:
-            self.getPlotItem().plot(self._log.samples["tach_pump"], pen={'color': (2,4), "width": 3});
+            self.getPlotItem().plot(self._log.samples["pump_spd"], pen={'color': (2,4), "width": 3});
         if PlotSignals.PRES in self.signals:            
             self.getPlotItem().plot(self._log.samples["pres"], pen={'color': (3,4), "width": 3});
         if PlotSignals.TEMP in self.signals:            

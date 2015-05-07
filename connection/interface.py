@@ -9,35 +9,37 @@ import abc
 
 
 class ConInterface(object):
+	"""
+	Abstract class defining the connection interface. 
+	"""
 	__metaclass__ = abc.ABCMeta
 	
 
 	@abc.abstractmethod
 	def close(self):
-		""" Close connection. """
+		""" Override to close connection. """
 		raise NotImplemented		
 
 	
 	@abc.abstractmethod
 	def connect(self):
-		""" Establish a connection. """
+		""" Override to establish a connection. """
 		raise NotImplemented		
 
 	
 	@abc.abstractmethod
 	def send(self, b):
-		""" 
-		Send bytes in b.
+		""" Override to send bytes in b.
 		
-		b : bytes
-			Bytes to send. 		
-		"""
+		:param b: Bytes to send.
+		:type b: bytes
+		"""	
 		raise NotImplemented		
 
 	
 	@abc.abstractmethod
 	def recv(self, n):
-		""" Receive n bytes of data. 
+		""" Override to receive n bytes of data. 
 		
 		n : integer
 			Number of bytes to receive.
@@ -51,10 +53,10 @@ class ConInterface(object):
 	
 	@abc.abstractmethod
 	def settimeout(self, t):
-		""" Set timeouts. 
+		""" Override to set timeouts.
 		
-		t : number
-			Timeout in seconds.
+		:param t: Timeout in seconds 
+		:type t: number
 		"""
 		raise NotImplemented		
 
@@ -62,6 +64,9 @@ class ConInterface(object):
 
 
 class ConError(Exception):
+	"""
+	Base class for all connection errors. 
+	"""
 	def __init__(self, exception=None):
 		self.exception = exception
 		

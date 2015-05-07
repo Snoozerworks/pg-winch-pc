@@ -37,7 +37,11 @@ class DataLog(QObject):
 		
 		
 	def addSample(self, sample):
-		""" Add a winch sample to the log """
+		""" Add a winch sample to the log.
+		
+		:param sample: The sample to add. 
+		:type sample: Sample
+		"""
 		self.length = min(self.length + 1, self.size)
 		
 		# Forward data by one...
@@ -50,19 +54,31 @@ class DataLog(QObject):
 		self.sigSampleAdded.emit();
 
 
-	def addParameter(self, p):
-		""" Add/update a winch parameter to the log. """
-		self.params[p['index']] = p		
+	def addParameter(self, param):
+		""" Add or update a winch parameter to the log.
+		
+		:param param: Parameter to add. 
+		:type param: Parameter
+		"""
+		self.params[param['index']] = param		
 		self._param_keys = sorted(self.params.keys())		
 		self.sigParamAdded.emit();
 
 
 	def getParameter(self, index):
-		""" Get parameter with specified index. """
+		""" Get parameter with specified index.
+		
+		:param index: Parameter index.
+		:rtype: Parameter
+		"""
 		return self.params[index]
 
 	def updateParameter(self, index, value):
-		""" Update parameter value """
+		""" Update parameter value.
+		
+		:type index: uint8
+		:type value: int16
+		"""
 		if index not in self.params: return False
 		raw = self.params[index].mapval_inv(value)
 		self.sigParamChange[int,int].emit(index, raw)
@@ -75,7 +91,13 @@ class DataLog(QObject):
 
 
 	def getRange(self, offset=0, length=50):
-		""" Return a valid range (inside the bounds) to use on data. """
+		""" Return a valid range (inside the bounds) to use on data. 
+		
+		:param offset: Offset in log.
+		:param length: Max number of items to include.
+		:type offset: int
+		:type length: int 
+		"""
 		i0 = max(0, min(offset, self.length - length))
 		i1 = min(i0 + length, self.length)
 		return range(i0, i1)
@@ -106,25 +128,26 @@ class DataLog(QObject):
 		return fname				
 	
 	
-	def Load(self, fileno):
-		""" Load a log from disk given the number of the log. """		
-		fname = "{}/log/record_{:03d}.npz".format(sys.path[0], fileno)
-		try:
-			d = np.load(fname)
-		except IOError:
-			print("Error loading file %s" % fname)
-			return ""
-				
-		self.reset()
-		self.params = d["parameters"].item()	 
-		
-# 		print repr(self.params)
-# 		print repr(self.params[0])
-			
-		for s in d["samples"]:
-			self.addSample(s)
-		print("Loaded %d samples and %d parameters" % (d["samples"].size, d["parameters"].size))
-		return fname
+# 	def Load(self, fileno):
+# 		""" Load a log from disk given the number of the log. 
+# 		
+# 		:param fileno: File number to load.
+# 		:type fileno: int
+# 		"""		
+# 		fname = "{}/log/record_{:03d}.npz".format(sys.path[0], fileno)
+# 		try:
+# 			d = np.load(fname)
+# 		except IOError:
+# 			print("Error loading file %s" % fname)
+# 			return ""
+# 				
+# 		self.reset()
+# 		self.params = d["parameters"].item()	 
+# 				
+# 		for s in d["samples"]:
+# 			self.addSample(s)
+# 		print("Loaded %d samples and %d parameters" % (d["samples"].size, d["parameters"].size))
+# 		return fname
 	
 		
 		
@@ -202,10 +225,14 @@ class dataParamModel(QtCore.QAbstractTableModel):
 		"""
 		Called when data edited in table.
 		
-		:type index: QModelIndex
-		:type value: string
-		:type role: int
-		:rtype: bool 
+		:param index: Model index.
+		:type index: int
+		:param value: Value at index.
+		:type value: object
+		:param role: Model role.
+		:type role: Qt.WditRole
+		:return: Always false.  
+		:rtype: bool
 		"""
 		try:
 			value = locale.atof(value)

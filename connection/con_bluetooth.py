@@ -14,7 +14,12 @@ class ConBluetooth(ConInterface):
 	
 	def __init__(self, port, addr):
 		""" Constructor for a bluetooth connection. May throw exception 
-		AttributeError if bluetooth socket is not supported. """
+		AttributeError if bluetooth socket is not supported. 
+		:type port: String
+			Bluetooth port.
+		:type addr: String
+			Bluetooth mac-address.
+		"""
 		self.port = port
 		self.addr = addr
 		self.socket = None

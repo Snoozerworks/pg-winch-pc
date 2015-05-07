@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
 
 # For debugging
-import pydevd
+
+try:
+	import pydevd
+except:
+	pass
+	
 import arduino
 
-pydevd.connected = True
+#pydevd.connected = True
 
 
 import time
@@ -34,11 +39,10 @@ class ConStates(Enum):
 	Winch connection states.  
 	"""
 	STATE_UNKNOWN = 0
-# 	STATE_CONNECTED = 1
-	STATE_DISCONNECTED = 2
-	STATE_SAMPELS = 3
-	STATE_SYNCS = 4
-	STATE_STOPPED = 5
+	STATE_DISCONNECTED = 1
+	STATE_SAMPELS = 2
+	STATE_SYNCS = 3
+	STATE_STOPPED = 4
 	
 	
 
@@ -49,7 +53,8 @@ class ConWinch(QtCore.QObject):
 	
 	# Signals
 	# conn_status = QtCore.pyqtSignal(int, 'QString')
-	sigDisconnected			 = QtCore.pyqtSignal()
+	# 	sigDisconnected			 = QtCore.pyqtSignal()
+	
 	sigConnected  			 = QtCore.pyqtSignal()
 	sigDisconnected			 = QtCore.pyqtSignal([str], [])
 	sigSamples		 		 = QtCore.pyqtSignal()
@@ -139,7 +144,7 @@ class ConWinch(QtCore.QObject):
 	def _ReadItem(self):
 		"""
 		Read connection to get a parameter or sample.
-		Returns number of bytes read or None upon timeout.
+		Returns number of bytes read or None in case of a connection timeout.
 		:rtype: int
 			Number of bytes read.
 		"""	
@@ -151,8 +156,8 @@ class ConWinch(QtCore.QObject):
 
 
 		mv_chunk1	= memoryview(bytearray(35))  # Received byte storage
-		received 	= 0  # Number of bytes received
-		expect 		= 11  # Number of bytes to fetch
+		received 	= 0		# Number of bytes received
+		expect 		= 12  	# Number of bytes to fetch
 
 # 		mv_chunk1 = memoryview(chunk1)
 

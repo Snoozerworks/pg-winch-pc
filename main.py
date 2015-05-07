@@ -6,9 +6,11 @@ Created on Tue Aug 13 20:42:16 2013
 @author: Markus
 """
 
-import sys 
+import sys
+from PyQt4 import uic
 from PyQt4 import QtCore, QtGui
-from AppUI import Ui_MainWindow
+
+#from AppUI import Ui_MainWindow
 from connection.con_winch import ConWinch   
 
 from arduino.package import Parameter, Sample
@@ -42,9 +44,9 @@ class _WorkerThread(QtCore.QThread):
 	
 	def setup_signals(self):
 		print("Setup signals in thread - {}".format(QtCore.QThread.currentThreadId()))
-		self.started.connect(lambda: print("Worker started"))
-		self.finished.connect(lambda: print("Worker finished"))
-		self.terminated.connect(lambda: print("Worker terminated"))
+		self.started.connect(lambda : print("Worker started"))
+		self.finished.connect(lambda : print("Worker finished"))
+		#self.terminated.connect(lambda : print("Worker terminated")) # terminated was removed in Qt5
 
 		self.sig_connect.connect(bt.slot_connect)
 		self.sig_disconnect.connect(bt.slot_disconnect)
@@ -70,15 +72,16 @@ _worker_thread.setup_signals()  # <-- ...then that ?
 _worker_thread.started.connect(bt._initCommunication)
 
 
-class StartQT4(QtGui.QMainWindow):
+class StartQT(QtGui.QMainWindow):
 	
 	def __init__(self, parent=None):
 
 		print("Running thread main {}".format(QtCore.QThread.currentThreadId()))
 
 		QtGui.QWidget.__init__(self, parent)
-		self.ui = Ui_MainWindow()
-		self.ui.setupUi(self)
+		#self.ui = Ui_MainWindow()
+		self.ui = uic.loadUi("AppUI.ui", self)
+		#self.ui.setupUi(self)
 
 		# Setup the datalog
 		self.log = log.DataLog(LOG_LENGTH)  # 10000 records to save
@@ -255,7 +258,7 @@ if __name__ == "__main__":
 		ConWinch.SIMULATE = True  # Simulate bluetooth device
 		
 	app = QtGui.QApplication(sys.argv)
-	myapp = StartQT4()
+	myapp = StartQT()
 	myapp.show()
 	
 	app.exec_()
