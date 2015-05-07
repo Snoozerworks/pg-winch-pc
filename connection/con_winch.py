@@ -9,7 +9,7 @@ except:
 	
 import arduino
 
-#pydevd.connected = True
+pydevd.connected = True
 
 
 import time
@@ -165,8 +165,7 @@ class ConWinch(QtCore.QObject):
 			received += ConWinch.sock.recv_into(mv_chunk1, expect)
 		except (TimeoutRead, ErrorRead):
 			self.sigPackageTimeout.emit()
-			return received
-
+			return received	
 
 		m = Modes.getMode(mv_chunk1[0])
 		

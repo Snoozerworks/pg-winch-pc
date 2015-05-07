@@ -158,8 +158,8 @@ class Sample():
         
     data_type = np.dtype([  # Data type definition of raw data
         ("mode", "u1"),
-        ("errors", "u1"),
         ("time", ">u4"),
+        ("errors", "u1"),
         ("pump_spd", "u1"),
         ("drum_spd", "u1"),
         ("temp", ">i2"),
@@ -183,7 +183,7 @@ class Sample():
         """ 
         Initialize Sample values.
         """
-        initval = [(0, 0, 0, 0, 0, 0)]  # Init sample values
+        initval = [(0, 0, 0, 0, 0, 0, 0)]  # Init sample values
         self.data = np.array(initval, Sample.data_type)
         if data != None:
             self.Parse(data)
@@ -211,7 +211,7 @@ class Sample():
 
     def to_csv(self):
         """ Return fields as a comma separated string. """
-        frmt = "{time},{mode},{pump_spd},{drum_spd},{temp},{pres}"
+        frmt = "{time},{mode},{errors},{pump_spd},{drum_spd},{temp},{pres}"
         return frmt.format_map(self)  
 
     
