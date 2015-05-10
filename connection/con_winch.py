@@ -4,12 +4,12 @@
 
 try:
 	import pydevd
+	pydevd.connected = True
 except:
 	pass
 
 import arduino
 
-pydevd.connected = True
 
 import time
 from enum import Enum, unique
