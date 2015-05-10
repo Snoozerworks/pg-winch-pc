@@ -138,13 +138,13 @@ class Parameter():
 		""" Returns a string representation of the parameter. """
 
 		frmt = ("Parameter {p[index]:2d} - {p[descr]}\n"
-				"	mode	 : {mt} ({p[mode]})\n"
-				"	val	  : {vm:6.1f} ({p[val]:4d})\n"
-				"	low	  : {lm:6.1f} ({p[low]:4d})\n"
-				"	high	 : {hm:6.1f} ({p[high]:4d})\n"
-				"	low_map  : {p[low_map]:4d}\n"
-				"	high_map : {p[high_map]:4d}\n"
-				"	step	 : {sm:6.1f} ({p[step]:4d})\n")
+				"	mode\t: {mt} ({p[mode]})\n"
+				"	val\t: {vm:6.1f} ({p[val]:4d})\n"
+				"	low\t: {lm:6.1f} ({p[low]:4d})\n"
+				"	high\t: {hm:6.1f} ({p[high]:4d})\n"
+				"	low_map\t: {p[low_map]:4d}\n"
+				"	high_map\t: {p[high_map]:4d}\n"
+				"	step\t: {sm:6.1f} ({p[step]:4d})\n")
 		s = frmt.format(p=self,
 						mt=MODE_TXT[self["mode"]],
 						vm=self.mapval(self["val"]),
@@ -229,12 +229,12 @@ class Sample():
 
 	def __str__(self):
 		s = "Sample - receive period {:0.0f}({:3.1f})\n".format(Sample._dt, Sample.time_buffer.sum)
-		s += "	mode		: {:2d} ({})\n".format(self.data["mode"], MODE_TXT[self.data["mode"]])
-		s += "	errors	  : {:b}\n".format(self.data["errors"])
-		s += "	on time	 : {:6d} ms\n".format(self.data["time"])
-		s += "	pump speed  : {:4d}({:4.0f}) rpm\n".format(self.data["pump_spd"], Sample.pump_buffer.sum)
-		s += "	drum speed  : {:4d}({:4.0f}) rpm\n".format(self.data["drum_spd"], Sample.drum_buffer.sum)
-		s += "	period	  : {:4.0f} ms\n".format(Sample._tx_time[0] - Sample._tx_time[1])
-		s += "	temperature : {:4.0f} deg C\n".format(self.data["temp"])
-		s += "	pressure	: {:4.0f} bar\n".format(self.data["pres"])
+		s += "	mode\t\t: {:2d} ({})\n".format(self.data["mode"], MODE_TXT[self.data["mode"]])
+		s += "	errors\t\t: {:b}\n".format(self.data["errors"])
+		s += "	on time\t\t: {:6d} ms\n".format(self.data["time"])
+		s += "	pump speed\t: {:4d}({:4.0f}) rpm\n".format(self.data["pump_spd"], Sample.pump_buffer.sum)
+		s += "	drum speed\t: {:4d}({:4.0f}) rpm\n".format(self.data["drum_spd"], Sample.drum_buffer.sum)
+		s += "	period\t\t: {:4.0f} ms\n".format(Sample._tx_time[0] - Sample._tx_time[1])
+		s += "	temperature\t: {:4.0f} deg C\n".format(self.data["temp"])
+		s += "	pressure\t\t: {:4.0f} bar\n".format(self.data["pres"])
 		return s

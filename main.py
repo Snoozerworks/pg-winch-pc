@@ -20,8 +20,8 @@ import os
 import fnmatch
 from TimePlot import TimePlot, PlotSignals
 
-LOG_LENGTH = 4500  # Max samples in log stack
-GRAPH_LEN = 200  # Max samples to show in graph
+LOG_LENGTH = 4500	# Max samples in log stack
+GRAPH_LEN = 100		# Max samples to show in graph
 
 # Run connection in separate thread
 bt = ConWinch("00:06:66:43:11:8D")
@@ -82,6 +82,9 @@ class StartQT(QtGui.QMainWindow):
 
 		# Create connection thread
 		self.bt = bt
+		
+		# Set tab stop for text field
+		self.ui.txt_status.tabStopWidth = 40
 
 		# Connect gui buttons signals
 		self.ui.lineEdit_btmac.setInputMask("HH:HH:HH:HH:HH:HH;_")
@@ -108,9 +111,10 @@ class StartQT(QtGui.QMainWindow):
 		self.ui.tbl_params.setModel(self.log.param_mdl)
 
 		# Create graph
-		self.ui.graph.setXRange(0, GRAPH_LEN)
-		self.ui.graph.setYRange(0, 100)
+		#self.ui.graph.setXRange(0, GRAPH_LEN)
+		#self.ui.graph.setYRange(0, 100)		
 		self.ui.graph.setDataLog(self.log);
+		self.ui.graph.setDisplayRange(0, GRAPH_LEN)
 
 		# Connect signals from bt connection
 		self.bt.sigSamples.connect(self.on_samples)
@@ -172,9 +176,7 @@ class StartQT(QtGui.QMainWindow):
 #		 _worker_thread.sig_setp[int, int].emit(index, nv)
 
 	def on_slider_changed(self, v):
-		return;
-#		 self.ui.graph.setRange(v, GRAPH_LEN)
-#		 self.ui.graph.updateY()
+		self.ui.graph.setDisplayRange(0, v)
 
 	def on_show_line(self, lineno, visible):
 		self.ui.graph.showLine(lineno, visible)
@@ -188,7 +190,7 @@ class StartQT(QtGui.QMainWindow):
 			s.Parse(package)
 			self.ui.txt_status.setPlainText(str(s))
 			self.log.addSample(s)
-			self.ui.hslider.setMaximum(max(0, self.log.length - GRAPH_LEN))
+			self.ui.hslider.setMaximum(max(1, self.log.length))
 
 		elif (len(package) == Parameter.SIZE):
 			p = Parameter()

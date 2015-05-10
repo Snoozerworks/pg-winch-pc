@@ -90,17 +90,17 @@ class DataLog(QObject):
 		self.length	 = 0  # current number of samples in record
 
 
-	def getRange(self, offset=0, length=50):
-		""" Return a valid range (inside the bounds) to use on data. 
-		
-		:param offset: Offset in log.
-		:param length: Max number of items to include.
-		:type offset: int
-		:type length: int 
-		"""
-		i0 = max(0, min(offset, self.length - length))
-		i1 = min(i0 + length, self.length)
-		return range(i0, i1)
+# 	def getRange(self, offset=0, length=50):
+# 		""" Return a valid range (inside the bounds) to use on data. 
+# 		
+# 		:param offset: Offset in log.
+# 		:param length: Max number of items to include.
+# 		:type offset: int
+# 		:type length: int 
+# 		"""
+# 		i0 = max(0, min(offset, self.length - length))
+# 		i1 = min(i0 + length, self.length)
+# 		return range(i0, i1)
 
 
 	def Save(self):
