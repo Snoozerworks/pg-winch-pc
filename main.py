@@ -215,14 +215,14 @@ class StartQT(QtGui.QMainWindow):
 
 	def on_disconnected(self, txt=""):
 		self.on_stopped() # Reset GUI to a "stopped" state 
+		
 		self.ui.btn_connect.setText("Connect")
 		self.ui.btn_connect.clicked.disconnect()
 		self.ui.btn_connect.clicked.connect(_worker_thread.sig_connect)
 		self.ui.tab_samples.setEnabled(False)
 		self.ui.tab_params.setEnabled(False)
 
-		self.ui.txt_status.appendPlainText("Disconnected")
-		self.ui.txt_status.appendPlainText(txt)
+		self.ui.txt_status.appendPlainText("Disconnected : " + txt)
 
 	def on_samples(self):
 		self.ui.btn_get.setText("Stop")
