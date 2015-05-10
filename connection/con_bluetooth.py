@@ -63,27 +63,37 @@ class ConBluetooth(ConInterface):
 
 
 	def recv(self, n):
-		""" Receive n bytes of data. May raise TimeoutRead or ErrorRead. """
-		if self.socket == None: return
-		data = None
+		""" Receive up to n bytes of data. 
+		May raise TimeoutRead, ErrorRead or ErrorConnection. 
+		Returns the bytes received. """
+		if self.socket == None: 
+			raise ErrorConnection("Socket closed")
+			return 0
+
 		try:
-			data = self.socket.recv(n)
+			bytesread = self.socket.recv(n)
 		except (socket.timeout) as e:
 			raise TimeoutRead(e)
 		except (socket.herror, socket.gaierror, OSError) as e:
 			raise ErrorRead(e)
-		return data
+		return bytesread
 
 
 	def recv_into(self, buffer, nbytes=0):
-		""" Receive nbytes of data in buffer. May raise TimeoutRead or ErrorRead. """
+		""" Receive up to nbytes of data in buffer.
+		May raise TimeoutRead,	ErrorRead or ErrorConnection. 
+		Returns number of bytes received or None if socket is closed. """
+		if self.socket == None: 
+			raise ErrorConnection("Socket closed")
+			return 0
+
 		try:
-			data = self.socket.recv_into(buffer, nbytes)
+			bytesread = self.socket.recv_into(buffer, nbytes)
 		except (socket.timeout) as e:
 			raise TimeoutRead(e)
 		except (socket.herror, socket.gaierror, OSError) as e:
 			raise ErrorRead(e)
-		return data
+		return bytesread
 
 
 	def settimeout(self, t):

@@ -214,6 +214,7 @@ class StartQT(QtGui.QMainWindow):
 		self.ui.txt_status.appendPlainText("Connected")
 
 	def on_disconnected(self, txt=""):
+		self.on_stopped() # Reset GUI to a "stopped" state 
 		self.ui.btn_connect.setText("Connect")
 		self.ui.btn_connect.clicked.disconnect()
 		self.ui.btn_connect.clicked.connect(_worker_thread.sig_connect)

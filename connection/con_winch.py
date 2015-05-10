@@ -153,8 +153,12 @@ class ConWinch(QtCore.QObject):
 			received += ConWinch.sock.recv_into(mv_chunk1, expect)
 		except (TimeoutRead, ErrorRead):
 			self.sigPackageTimeout.emit()
+			return received		
+		except (ErrorConnection) as e:
+			self.sigDisconnected.emit(str(e))
+			self._set_state(ConStates.STATE_DISCONNECTED)
 			return received
-
+		
 		m = Modes.getMode(mv_chunk1[0])
 
 		# If in configuration mode, expect a parameter of 35 bytes.
@@ -166,6 +170,10 @@ class ConWinch(QtCore.QObject):
 				received += ConWinch.sock.recv_into(mv_chunk1[received:])
 			except (TimeoutRead, ErrorRead):
 				self.sigPackageTimeout.emit()
+				return received
+			except (ErrorConnection) as e:
+				self.sigDisconnected.emit(str(e))
+				self._set_state(ConStates.STATE_DISCONNECTED)
 				return received
 
 		if received == Parameter.SIZE:
@@ -229,7 +237,7 @@ class ConWinch(QtCore.QObject):
 		except TimeoutWrite:
 			self.sigPackageTimeout()
 		except ErrorWrite:
-			self.sigDisconnected()
+			self.sigDisconnected.emit("Failed to write data")
 		else:
 			# print("Poll {}".format(c))
 			QtCore.QThread.sleep(0.05)
@@ -255,7 +263,7 @@ class ConWinch(QtCore.QObject):
 			ConWinch.sock.connect()
 		except (TimeoutConnection):
 			self.sigConnectionTimeout.emit();
-			self.sigDisconnected.emit()
+			self.sigDisconnected.emit("Connection timeout")
 			self._set_state(ConStates.STATE_DISCONNECTED)
 			return (time.time(), False)
 		except (ErrorConnection) as e:
@@ -285,8 +293,7 @@ class ConWinch(QtCore.QObject):
 		ConWinch.sock.close()
 		print("Connection closed.")
 		self._set_state(ConStates.STATE_DISCONNECTED)
-		self.sigStopped.emit()
-		self.sigDisconnected.emit(None);
+		self.sigDisconnected.emit("Connection intentionally closed");
 
 	def slot_stop(self):
 		try:
