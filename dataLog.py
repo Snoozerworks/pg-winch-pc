@@ -118,7 +118,16 @@ class DataLog(QObject):
 				raise
 			# Directory already exists
 
+
 		with open(fname, mode='wt', encoding='utf-8') as f:
+			f.write(Parameter.csvHeader());
+			for i in self.params:
+				f.write(self.params[i].to_csv())
+				f.write("\n")
+
+			f.write("\n")
+			
+			f.write(Sample.csvHeader());
 			for sample in self.samples:
 				S = Sample(sample)
 				f.write(S.to_csv())
