@@ -143,12 +143,13 @@ class ConWinch(QtCore.QObject):
 		except:
 			pass
 
-		mv_chunk1 = memoryview(bytearray(35))  # Received byte storage
-		received = 0  # Number of bytes received
-		expect = 12  # Number of bytes to fetch
+		mv_chunk1	= memoryview(bytearray(35))  # Received byte storage
+		received 	= 0  # Number of bytes received
+		expect 		= 12  # Number of bytes to fetch
 
 # 		 mv_chunk1 = memoryview(chunk1)
 
+		# Start getting at least first byte to determine winch mode.
 		try:
 			received += ConWinch.sock.recv_into(mv_chunk1, expect)
 		except (TimeoutRead, ErrorRead):
@@ -279,7 +280,7 @@ class ConWinch(QtCore.QObject):
 
 	@QtCore.pyqtSlot()
 	def slot_disconnect(self):
-		""" Stops connection to the winch but keeps the socket. """
+		""" Stops connection to the winch but keeps the socket open. """
 
 		try:
 			pydevd.settrace(suspend=False)

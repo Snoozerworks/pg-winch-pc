@@ -40,6 +40,7 @@ class ConInterface(object):
 	@abc.abstractmethod
 	def recv(self, n):
 		""" Override to receive n bytes of data. 
+		May raise TimeoutRead, ErrorRead or ErrorConnection.
 		
 		n : integer
 			Number of bytes to receive.
@@ -48,6 +49,11 @@ class ConInterface(object):
 
 
 	def recv_into(self, buffer, nbytes):
+		""" May raise TimeoutRead, ErrorRead or ErrorConnection. 
+				
+		nbytes : integer
+			Number of bytes to receive.
+		"""
 		raise NotImplemented
 
 
