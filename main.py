@@ -20,8 +20,8 @@ import os
 import fnmatch
 from TimePlot import TimePlot, PlotSignals
 
-LOG_LENGTH = 100  # Max samples in log stack
-GRAPH_LEN = 50  # Max samples to show in graph
+LOG_LENGTH = 4500  # Max samples in log stack
+GRAPH_LEN = 200  # Max samples to show in graph
 
 # Run connection in separate thread
 bt = ConWinch("00:06:66:43:11:8D")
