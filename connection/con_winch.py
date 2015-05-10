@@ -85,6 +85,7 @@ class ConWinch(QtCore.QObject):
 	_con_state = ConStates.STATE_UNKNOWN
 	_param_indices = []	
 		
+	bt_mac			 = ""	# BLuetooth mac address
 	port			 = 2
 	timeout			 = 1.0  # Timeout when waiting for data
 	conn_timeout	 = 10.0  # Timeout upon initial connection
@@ -272,7 +273,6 @@ class ConWinch(QtCore.QObject):
 		except:
 			pass
 		
-
 		ConWinch.sock.settimeout(ConWinch.conn_timeout)
 		try:
 			ConWinch.sock.connect()
@@ -377,6 +377,11 @@ class ConWinch(QtCore.QObject):
 		# ...and start getting parameters
 		self._PollWinsch(Commands.SP, 0)
 
+
+	@QtCore.pyqtSlot('QString')
+	def slot_changeMac(self, mac):
+		print("Change MAC to: " + mac)
+		self.bt_mac = mac
 
 # 		
 # 		o = self._PollWinsch(Commands.SE)

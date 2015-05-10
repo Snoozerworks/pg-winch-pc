@@ -41,6 +41,7 @@ class _WorkerThread(QtCore.QThread):
 	sig_select  	 = QtCore.pyqtSignal()
 	sig_setp	  	 = QtCore.pyqtSignal([], [int], [int, int])
 	sig_sync	  	 = QtCore.pyqtSignal()
+	sig_changeMac  	 = QtCore.pyqtSignal('QString')
 	
 	def setup_signals(self):
 		print("Setup signals in thread - {}".format(QtCore.QThread.currentThreadId()))
@@ -64,6 +65,7 @@ class _WorkerThread(QtCore.QThread):
 		self.sig_down.connect(bt.slot_down)
 		
 
+		self.sig_changeMac.connect(bt.slot_changeMac)
 
 		
 _worker_thread = _WorkerThread()
@@ -80,8 +82,8 @@ class StartQT(QtGui.QMainWindow):
 
 		QtGui.QWidget.__init__(self, parent)
 		#self.ui = Ui_MainWindow()
-		self.ui = uic.loadUi("AppUI.ui", self)
 		#self.ui.setupUi(self)
+		self.ui = uic.loadUi("AppUI.ui", self)
 
 		# Setup the datalog
 		self.log = log.DataLog(LOG_LENGTH)  # 10000 records to save
@@ -90,6 +92,9 @@ class StartQT(QtGui.QMainWindow):
 		self.bt = bt
 		
 		# Connect gui buttons signals 
+		self.ui.lineEdit_btmac.setInputMask("HH:HH:HH:HH:HH:HH;_")
+		self.ui.lineEdit_btmac.editingFinished.connect(lambda : _worker_thread.sig_changeMac.emit(self.ui.lineEdit_btmac.text()))
+
 		self.ui.btn_connect.clicked.connect(_worker_thread.sig_connect.emit)
 		self.ui.btn_get.clicked.connect(_worker_thread.sig_sample.emit)
 		self.ui.btn_select.clicked.connect(_worker_thread.sig_select.emit)
