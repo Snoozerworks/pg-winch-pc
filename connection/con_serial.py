@@ -37,7 +37,6 @@ class ConSerial(ConInterface):
 	def connect(self):
 		""" Establish a connection. """
 		# print("Try serial.open() with timeouts (%f, %f)." % (self.serial.timeout, self.serial.writeTimeout))
-		print(self.serial)
 		try:
 			self.serial.open()
 		except serial.SerialTimeoutException as e:

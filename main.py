@@ -6,18 +6,17 @@ Created on Tue Aug 13 20:42:16 2013
 @author: Markus
 """
 
+import os
 import sys
+import fnmatch
 from PyQt4 import uic
 from PyQt4 import QtCore, QtGui
 
 # from AppUI import Ui_MainWindow
 from connection.con_winch import ConWinch
-
 from arduino.package import Parameter, Sample
 
 import dataLog as log
-import os
-import fnmatch
 from TimePlot import TimePlot, PlotSignals
 
 LOG_LENGTH = 4500	# Max samples in log stack
@@ -113,7 +112,12 @@ class StartQT(QtGui.QMainWindow):
 
 	def getFileCount(self):
 		""" Count the number of .csv files in the log directory. """
-		basedir = os.path.dirname(os.path.abspath(__file__))
+		try:
+			basedir = os.path.dirname(os.path.abspath(__file__))
+		except NameError:  # We are the main py2exe script, not a module
+			import sys
+			basedir = os.path.dirname(os.path.abspath(sys.argv[0]))
+
 		filecount = 0
 		os.listdir()
 		try:
