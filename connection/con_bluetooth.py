@@ -20,10 +20,19 @@ class ConBluetooth(ConInterface):
 		:type addr: String
 			Bluetooth mac-address.
 		"""
+          # Test availability of bluetooth socket
+		if (socket.AF_BLUETOOTH) : 1
+
 		self.port = port
 		self.addr = addr
 		self.socket = None
 		self._timeout = 10
+
+
+	def setMac(self, mac):
+		""" Set MAC-address. """
+		print("Selecting mac-address {}".format(mac));
+		self.addr = mac
 
 
 	def close(self):

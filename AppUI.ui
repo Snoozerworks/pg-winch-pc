@@ -327,6 +327,9 @@
         </item>
         <item row="0" column="1">
          <widget class="QSpinBox" name="spinBox_COMport">
+          <property name="minimum">
+           <number>1</number>
+          </property>
           <property name="value">
            <number>16</number>
           </property>
@@ -395,7 +398,7 @@
      <x>0</x>
      <y>0</y>
      <width>600</width>
-     <height>27</height>
+     <height>31</height>
     </rect>
    </property>
   </widget>

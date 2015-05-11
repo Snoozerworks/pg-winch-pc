@@ -24,7 +24,7 @@ LOG_LENGTH = 4500	# Max samples in log stack
 GRAPH_LEN = 100		# Max samples to show in graph
 
 # Run connection in separate thread
-bt = ConWinch("00:06:66:43:11:8D")
+bt = ConWinch("00:06:66:43:11:8D", 16)
 
 class _WorkerThread(QtCore.QThread):
 	def setup_signals(self):
@@ -58,9 +58,12 @@ class StartQT(QtGui.QMainWindow):
 		# Set tab stop for text field
 		self.ui.txt_status.tabStopWidth = 40
 
-		# Set mac address validator
+		# Setup mac-address lineedit
 		self.ui.lineEdit_btmac.setInputMask("HH:HH:HH:HH:HH:HH;_")
 		self.ui.lineEdit_btmac.editingFinished.connect(lambda : bt.slot_changeMac(self.ui.lineEdit_btmac.text()))
+
+		# Setup com-port spinbox
+		self.ui.spinBox_COMport.valueChanged.connect(lambda : bt.slot_changeSerialPort(self.ui.spinBox_COMport.value()))
 
 		# Connect gui buttons signals
 		self.ui.btn_connect.clicked.connect(bt.slot_connect)

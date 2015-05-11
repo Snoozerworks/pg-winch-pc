@@ -73,22 +73,24 @@ class ConWinch(QtCore.QObject):
 
 	# Some settings
 	conn_retry_delay	= 3.0
-	COM_PORT			= 16
+#	COM_PORT			= 16
 
 	_con_state		= ConStates.STATE_UNKNOWN
 	_param_indices	= []
 
-	bt_mac			= ""  # BLuetooth mac address
-	port			= 2
+#	com_port		= 16
+#	bt_mac			= ""  # BLuetooth mac address
+#	port			= 2
 	timeout			= 1.0  # Timeout when waiting for data
 	conn_timeout	= 10.0  # Timeout upon initial connection
 	sock			= None  # Will normally hold a socket object
 
-	def __init__(self, bt_mac):  # 			 self.result_rx.emit()
+	def __init__(self, bt_mac, com_port):  # 			 self.result_rx.emit()
 		super().__init__()
 
 		print("ConWinch::__init__ - {}".format(QtCore.QThread.currentThreadId()))
 
+		self.com_port 			= com_port
 		self.bt_mac			= bt_mac
 		self._start_time	= 0
 		self._sample_count	= 0
@@ -122,7 +124,7 @@ class ConWinch(QtCore.QObject):
 		except AttributeError:
 			# Try a serial connection.
 			print("Bluetooth socket not supported. Falling back to serial connection.")
-			ConWinch.sock = ConSerial(ConWinch.COM_PORT)
+			ConWinch.sock = ConSerial(self.com_port)
 
 	def __del__(self):
 		""" Closes socket before destroying object. """
@@ -236,7 +238,7 @@ class ConWinch(QtCore.QObject):
 		try:
 			ConWinch.sock.send(tx_bytes)
 		except TimeoutWrite:
-			self.sigPackageTimeout()
+			self.sigPackageTimeout.emit()
 		except ErrorWrite:
 			self.sigDisconnected.emit("Failed to write data")
 		else:
@@ -357,10 +359,14 @@ class ConWinch(QtCore.QObject):
 
 	@QtCore.pyqtSlot('QString')
 	def slot_changeMac(self, mac):
-		print("Change MAC to: " + mac)
-		self.bt_mac = mac
+		if not isinstance(ConWinch.sock, ConBluetooth): return
+		ConWinch.sock.setMac(mac)
 
-#
+	@QtCore.pyqtSlot(int)
+	def slot_changeSerialPort(self, com):
+		if not isinstance(ConWinch.sock, ConSerial): return
+		ConWinch.sock.setPort(com)
+
 # 		 o = self._PollWinsch(Commands.SE)
 # 		 if not isinstance(o, Parameter):
 # 			 self._set_state(ConStates.STATE_STOPPED)
