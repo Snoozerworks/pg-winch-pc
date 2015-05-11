@@ -27,39 +27,11 @@ GRAPH_LEN = 100		# Max samples to show in graph
 bt = ConWinch("00:06:66:43:11:8D")
 
 class _WorkerThread(QtCore.QThread):
-	sig_connect		= QtCore.pyqtSignal()
-	sig_disconnect	= QtCore.pyqtSignal()
-	sig_sample		= QtCore.pyqtSignal()
-	sig_stop		= QtCore.pyqtSignal()
-	sig_up			= QtCore.pyqtSignal()
-	sig_down		= QtCore.pyqtSignal()
-	sig_select		= QtCore.pyqtSignal()
-	sig_setp		= QtCore.pyqtSignal([], [int], [int, int])
-	sig_sync		= QtCore.pyqtSignal()
-	sig_changeMac	= QtCore.pyqtSignal('QString')
-
 	def setup_signals(self):
 		print("Setup signals in thread - {}".format(QtCore.QThread.currentThreadId()))
 		self.started.connect(lambda : print("Worker started"))
 		self.finished.connect(lambda : print("Worker finished"))
-		# self.terminated.connect(lambda : print("Worker terminated")) # terminated was removed in Qt5
 
-		self.sig_connect.connect(bt.slot_connect)
-		self.sig_disconnect.connect(bt.slot_disconnect)
-		self.sig_sample.connect(bt.slot_sample)
-		self.sig_sync.connect(bt.slot_sync)
-
-		self.sig_setp.connect(bt.slot_setp)
-		self.sig_setp[int].connect(bt.slot_setp)
-		self.sig_setp[int, int].connect(bt.slot_setp)
-
-		self.sig_stop.connect(bt.slot_stop)
-
-		self.sig_select.connect(bt.slot_select)
-		self.sig_up.connect(bt.slot_up)
-		self.sig_down.connect(bt.slot_down)
-
-		self.sig_changeMac.connect(bt.slot_changeMac)
 
 _worker_thread = _WorkerThread()
 bt.moveToThread(_worker_thread)  # <-- first this...
@@ -86,16 +58,17 @@ class StartQT(QtGui.QMainWindow):
 		# Set tab stop for text field
 		self.ui.txt_status.tabStopWidth = 40
 
-		# Connect gui buttons signals
+		# Set mac address validator
 		self.ui.lineEdit_btmac.setInputMask("HH:HH:HH:HH:HH:HH;_")
-		self.ui.lineEdit_btmac.editingFinished.connect(lambda : _worker_thread.sig_changeMac.emit(self.ui.lineEdit_btmac.text()))
+		self.ui.lineEdit_btmac.editingFinished.connect(lambda : bt.slot_changeMac(self.ui.lineEdit_btmac.text()))
 
-		self.ui.btn_connect.clicked.connect(_worker_thread.sig_connect.emit)
-		self.ui.btn_get.clicked.connect(_worker_thread.sig_sample.emit)
-		self.ui.btn_select.clicked.connect(_worker_thread.sig_select.emit)
-		self.ui.btn_up.clicked.connect(lambda : self._step_param("+"))
-		self.ui.btn_down.clicked.connect(lambda : self._step_param("-"))
-		self.ui.btn_sync.clicked.connect(_worker_thread.sig_sync.emit)
+		# Connect gui buttons signals
+		self.ui.btn_connect.clicked.connect(bt.slot_connect)
+		self.ui.btn_get.clicked.connect(bt.slot_sample)
+		self.ui.btn_select.clicked.connect(bt.slot_select)
+		self.ui.btn_up.clicked.connect(bt.slot_up)
+		self.ui.btn_down.clicked.connect(bt.slot_down)
+		self.ui.btn_sync.clicked.connect(bt.slot_sync)
 		self.ui.btn_save.clicked.connect(self.log.Save)
 
 		# Connect graph line checkboxes
@@ -111,8 +84,6 @@ class StartQT(QtGui.QMainWindow):
 		self.ui.tbl_params.setModel(self.log.param_mdl)
 
 		# Create graph
-		#self.ui.graph.setXRange(0, GRAPH_LEN)
-		#self.ui.graph.setYRange(0, 100)		
 		self.ui.graph.setDataLog(self.log);
 		self.ui.graph.setDisplayRange(0, GRAPH_LEN)
 
@@ -127,7 +98,7 @@ class StartQT(QtGui.QMainWindow):
 		self.bt.sigPackageTimeout.connect(self.on_package_timeout)
 
 		# Connect log  signals
-		self.log.sigParamChange[int, int].connect(_worker_thread.sig_setp[int, int])
+		self.log.sigParamChange.connect(bt.slot_setp)
 
 		# Check for saved .npz files.
 		self.getFileCount()
@@ -152,28 +123,6 @@ class StartQT(QtGui.QMainWindow):
 		self.ui.spinBox.setMaximum(filecount)
 		self.ui.btn_load.setEnabled((filecount > 0))
 		return filecount
-
-#	 def _step_param(self, direction):
-#		 """ Increase or decrease currently selected parameter.
-#		 direction : string
-#			 Increase with "+" or decrease with "-"
-#		 """
-#		 return
-#
-#		 inds = self.ui.tbl_params.selectedIndexes()
-#		 if len(inds)>1: return
-#		 inds[0].row()
-#
-#		 item = self.ui.lst_params.currentItem()
-#		 if item == None: return
-#		 index = item.data(QtCore.Qt.UserRole)
-#		 param = self.log.getParameter(index)
-#		 nv = param["val"]
-#		 if direction == "+":
-#			 nv += param["step"]
-#		 elif direction == "-":
-#			 nv -= param["step"]
-#		 _worker_thread.sig_setp[int, int].emit(index, nv)
 
 	def on_slider_changed(self, v):
 		self.ui.graph.setDisplayRange(0, v)
@@ -209,7 +158,7 @@ class StartQT(QtGui.QMainWindow):
 	def on_connected(self):
 		self.ui.btn_connect.setText("Disconnect")
 		self.ui.btn_connect.clicked.disconnect()
-		self.ui.btn_connect.clicked.connect(_worker_thread.sig_disconnect)
+		self.ui.btn_connect.clicked.connect(bt.slot_disconnect)
 		self.ui.tab_samples.setEnabled(True)
 		self.ui.tab_params.setEnabled(True)
 
@@ -219,8 +168,9 @@ class StartQT(QtGui.QMainWindow):
 		self.on_stopped() # Reset GUI to a "stopped" state 
 		
 		self.ui.btn_connect.setText("Connect")
+		self.ui.btn_connect.setChecked(False)
 		self.ui.btn_connect.clicked.disconnect()
-		self.ui.btn_connect.clicked.connect(_worker_thread.sig_connect)
+		self.ui.btn_connect.clicked.connect(bt.slot_connect)
 		self.ui.tab_samples.setEnabled(False)
 		self.ui.tab_params.setEnabled(False)
 
@@ -229,16 +179,18 @@ class StartQT(QtGui.QMainWindow):
 	def on_samples(self):
 		self.ui.btn_get.setText("Stop")
 		self.ui.btn_get.clicked.disconnect()
-		self.ui.btn_get.clicked.connect(_worker_thread.sig_stop.emit)
+		self.ui.btn_get.clicked.connect(bt.slot_stop)
 		self.ui.txt_status.appendPlainText("Samples")
 
 	def on_stopped(self):
 		self.ui.btn_get.setText("Sample")
+		self.ui.btn_get.setChecked(False)
 		self.ui.btn_get.clicked.disconnect()
-		self.ui.btn_get.clicked.connect(_worker_thread.sig_sample.emit)
+		self.ui.btn_get.clicked.connect(bt.slot_sample)
 		self.ui.txt_status.appendPlainText("Stopped")
 
 	def closeEvent(self, event):
+		print("Stopping thread")
 		_worker_thread.quit()
 
 if __name__ == "__main__":
@@ -253,4 +205,3 @@ if __name__ == "__main__":
 	app.deleteLater()
 	sys.exit()
 	_worker_thread.quit()
-#	 sys.exit(app.exec_())
