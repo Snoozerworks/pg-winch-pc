@@ -350,6 +350,31 @@
          </widget>
         </item>
         <item row="2" column="1">
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="QLineEdit" name="lineEdit_log_folder">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btn_log_folder">
+            <property name="text">
+             <string>Select...</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Log folder</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
          <widget class="QPushButton" name="btn_connect">
           <property name="text">
            <string>Connect</string>
@@ -398,7 +423,7 @@
      <x>0</x>
      <y>0</y>
      <width>600</width>
-     <height>31</height>
+     <height>27</height>
     </rect>
    </property>
   </widget>

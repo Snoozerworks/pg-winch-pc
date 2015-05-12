@@ -2,13 +2,11 @@
 
 import os
 import locale
-import sys
 import numpy as np
 from arduino.package import Sample, Parameter
 from PyQt4 import QtCore
 from PyQt4.QtCore import QObject, QModelIndex
 from PyQt4.Qt import Qt
-from numpy import select
 from _datetime import datetime
 
 # import from PyQt4.Qt as Qt
@@ -26,6 +24,7 @@ class DataLog(QObject):
 	def __init__(self, size):
 		super().__init__()
 
+		self.log_path	= "";
 		self.size		= size  # max number of samples in record
 		self.length		= 0  # current number of samples in record
 		self.samples	= np.zeros(self.size, dtype=Sample.data_type)
@@ -90,34 +89,17 @@ class DataLog(QObject):
 		self.length	 = 0  # current number of samples in record
 
 
-# 	def getRange(self, offset=0, length=50):
-# 		""" Return a valid range (inside the bounds) to use on data. 
-# 		
-# 		:param offset: Offset in log.
-# 		:param length: Max number of items to include.
-# 		:type offset: int
-# 		:type length: int 
-# 		"""
-# 		i0 = max(0, min(offset, self.length - length))
-# 		i1 = min(i0 + length, self.length)
-# 		return range(i0, i1)
-
-
 	def Save(self):
 		""" Save log to disk. """
 		self.recordno += 1
 		now = datetime.today()
-		path = "{}/log".format(sys.path[0])
-		fname = "{}/rec_{}.csv".format(path, now.strftime("%Y%m%dT%H%M%S"))
+		#path = "{}/log".format(sys.path[0])
+		if not os.path.exists(self.log_path):
+			print("File not saved. Invalid directory " + self.log_path)
+			return
+			
+		fname = "{}/rec_{}.csv".format(self.log_path, now.strftime("%Y%m%dT%H%M%S"))
 		print("Save %d samples in file %s" % (self.length, fname))
-
-		try:
-			os.makedirs(path)
-		except OSError as exception:
-			if exception.errno != os.errno.EEXIST:
-				raise
-			# Directory already exists
-
 
 		with open(fname, mode='wt', encoding='utf-8') as f:
 			f.write(Parameter.csvHeader());
@@ -128,37 +110,13 @@ class DataLog(QObject):
 			f.write("\n")
 			
 			f.write(Sample.csvHeader());
-			for sample in self.samples:
+			for sample in self.samples[0:self.length]:
 				S = Sample(sample)
 				f.write(S.to_csv())
 				f.write("\n")
 
 		# np.savez(fname, samples=self.samples[0:self.length], parameters=self.params)
 		return fname
-
-
-# 	def Load(self, fileno):
-# 		""" Load a log from disk given the number of the log.
-#
-# 		:param fileno: File number to load.
-# 		:type fileno: int
-# 		"""
-# 		fname = "{}/log/record_{:03d}.npz".format(sys.path[0], fileno)
-# 		try:
-# 			d = np.load(fname)
-# 		except IOError:
-# 			print("Error loading file %s" % fname)
-# 			return ""
-#
-# 		self.reset()
-# 		self.params = d["parameters"].item()
-#
-# 		for s in d["samples"]:
-# 			self.addSample(s)
-# 		print("Loaded %d samples and %d parameters" % (d["samples"].size, d["parameters"].size))
-# 		return fname
-
-
 
 
 class dataParamModel(QtCore.QAbstractTableModel):
@@ -271,5 +229,3 @@ class dataParamModel(QtCore.QAbstractTableModel):
 		self.beginInsertRows()
 		pass
 		self.endInsertRows()
-
-

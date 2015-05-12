@@ -9,6 +9,7 @@ Created on Tue Aug 13 20:42:16 2013
 import os
 import sys
 import fnmatch
+import configparser
 from PyQt4 import uic
 from PyQt4 import QtCore, QtGui
 
@@ -18,9 +19,10 @@ from arduino.package import Parameter, Sample
 
 import dataLog as log
 from TimePlot import TimePlot, PlotSignals
+from defaults import APP_CONFIG_FILE, APP_DEFAULTS, APP_ROOT
 
-LOG_LENGTH = 4500	# Max samples in log stack
-GRAPH_LEN = 100		# Max samples to show in graph
+LOG_LENGTH 		 = 4500		# Max samples in log stack
+GRAPH_LEN 		 = 100		# Max samples to show in graph
 
 # Run connection in separate thread
 bt = ConWinch("00:06:66:43:11:8D", 16)
@@ -44,26 +46,59 @@ class StartQT(QtGui.QMainWindow):
 
 		print("Running thread main {}".format(QtCore.QThread.currentThreadId()))
 
+		# Load GUI
 		QtGui.QWidget.__init__(self, parent)
-		# self.ui = Ui_MainWindow()
-		# self.ui.setupUi(self)
 		self.ui = uic.loadUi("AppUI.ui", self)
 
+		# Load settings
+		self.conf 				 = configparser.ConfigParser()
+		self.conf["DEFAULT"]	 = APP_DEFAULTS
+		self.conf["winch"]		 = {}
+		conf					 = self.conf["winch"]
+		if os.path.isfile(APP_CONFIG_FILE):
+			self.conf.read_file(open(APP_CONFIG_FILE, mode="rt", encoding="utf8"))
+		if conf.get("log-path") == None:
+			conf["log-path"] = APP_ROOT + "/log"
+
 		# Setup the datalog
-		self.log = log.DataLog(LOG_LENGTH)  # 10000 records to save
+		self.log 			 = log.DataLog(LOG_LENGTH)  # records to save
+		self.log.log_path	 = conf["log-path"]
 
 		# Create connection thread
 		self.bt = bt
-		
+
 		# Set tab stop for text field
 		self.ui.txt_status.tabStopWidth = 40
 
+		# Setup log folder lineedit and button
+		print("PATH=" + conf["log-path"])
+		self.ui.lineEdit_log_folder.setText(conf["log-path"])
+		def onPathChange():
+			d = QtGui.QFileDialog.getExistingDirectory()
+			if d == None: return
+			self.ui.lineEdit_log_folder.setText(d)
+			conf["log-path"] = d
+			self.log_path = d
+		self.ui.btn_log_folder.clicked.connect(onPathChange)
+
 		# Setup mac-address lineedit
 		self.ui.lineEdit_btmac.setInputMask("HH:HH:HH:HH:HH:HH;_")
-		self.ui.lineEdit_btmac.editingFinished.connect(lambda : bt.slot_changeMac(self.ui.lineEdit_btmac.text()))
+		self.ui.lineEdit_btmac.setText(APP_DEFAULTS["mac-address"])
+		self.ui.lineEdit_btmac.setText(conf["mac-address"])
+		def onMacChange():
+			value = self.ui.lineEdit_btmac.text().lower()
+			print(value)
+			bt.slot_changeMac(value)
+			conf["mac-address"] = value
+		self.ui.lineEdit_btmac.editingFinished.connect(onMacChange)
 
 		# Setup com-port spinbox
-		self.ui.spinBox_COMport.valueChanged.connect(lambda : bt.slot_changeSerialPort(self.ui.spinBox_COMport.value()))
+		self.ui.spinBox_COMport.setValue(int(conf["com-port"]))
+		def onComChange():
+			value = self.ui.spinBox_COMport.value()
+			bt.slot_changeSerialPort(value)
+			conf["com-port"] = str(value)
+		self.ui.spinBox_COMport.valueChanged.connect(onComChange)
 
 		# Connect gui buttons signals
 		self.ui.btn_connect.clicked.connect(bt.slot_connect)
@@ -85,6 +120,7 @@ class StartQT(QtGui.QMainWindow):
 
 		# Parameter list
 		self.ui.tbl_params.setModel(self.log.param_mdl)
+		self.ui.tbl_params.show()
 
 		# Create graph
 		self.ui.graph.setDataLog(self.log);
@@ -106,24 +142,16 @@ class StartQT(QtGui.QMainWindow):
 		# Check for saved .npz files.
 		self.getFileCount()
 
-		self.ui.tbl_params.show()
-
 		# Kick off worker thread
 		_worker_thread.start()
 
 
 	def getFileCount(self):
 		""" Count the number of .csv files in the log directory. """
-		try:
-			basedir = os.path.dirname(os.path.abspath(__file__))
-		except NameError:  # We are the main py2exe script, not a module
-			import sys
-			basedir = os.path.dirname(os.path.abspath(sys.argv[0]))
-
 		filecount = 0
 		os.listdir()
 		try:
-			for file in os.listdir("{}/log".format(basedir)):
+			for file in os.listdir("{}/log".format(self.conf["winch"]["log-path"])):
 				if fnmatch.fnmatch(file, '*.csv'):
 					filecount += 1
 		except FileNotFoundError:
@@ -182,8 +210,8 @@ class StartQT(QtGui.QMainWindow):
 
 
 	def on_disconnected(self, txt=""):
-		self.on_stopped() # Reset GUI to a "stopped" state 
-		
+		self.on_stopped() # Reset GUI to a "stopped" state
+
 		self.ui.btn_connect.setText("Connect")
 		self.ui.btn_connect.setChecked(False)
 		self.ui.btn_connect.clicked.disconnect()
@@ -211,8 +239,9 @@ class StartQT(QtGui.QMainWindow):
 
 	def closeEvent(self, event):
 		print("Stopping thread")
+		with open(APP_CONFIG_FILE, mode="+w", encoding="utf8") as f:
+			self.conf.write(f)
 		_worker_thread.quit()
-
 
 
 if __name__ == "__main__":
