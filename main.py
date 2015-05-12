@@ -37,6 +37,7 @@ bt.moveToThread(_worker_thread)  # <-- first this...
 _worker_thread.setup_signals()  # <-- ...then that ?
 _worker_thread.started.connect(bt._initCommunication)
 
+
 class StartQT(QtGui.QMainWindow):
 
 	def __init__(self, parent=None):
@@ -110,6 +111,7 @@ class StartQT(QtGui.QMainWindow):
 		# Kick off worker thread
 		_worker_thread.start()
 
+
 	def getFileCount(self):
 		""" Count the number of .csv files in the log directory. """
 		try:
@@ -131,14 +133,18 @@ class StartQT(QtGui.QMainWindow):
 		self.ui.btn_load.setEnabled((filecount > 0))
 		return filecount
 
+
 	def on_slider_changed(self, v):
 		self.ui.graph.setDisplayRange(0, v)
+
 
 	def on_show_line(self, lineno, visible):
 		self.ui.graph.showLine(lineno, visible)
 
+
 	def set_status(self, msg):
 		self.ui.txt_status.setPlainText(msg)
+
 
 	def on_package_received(self, package):
 		if (len(package) == Sample.SIZE):
@@ -156,11 +162,14 @@ class StartQT(QtGui.QMainWindow):
 		else:
 			print("Received unknown data")
 
+
 	def on_package_timeout(self):
 		self.ui.txt_status.appendPlainText("Package timeout")
 
+
 	def on_connection_timeout(self):
 		self.ui.txt_status.appendPlainText("Connection timeout")
+
 
 	def on_connected(self):
 		self.ui.btn_connect.setText("Disconnect")
@@ -170,6 +179,7 @@ class StartQT(QtGui.QMainWindow):
 		self.ui.tab_params.setEnabled(True)
 
 		self.ui.txt_status.appendPlainText("Connected")
+
 
 	def on_disconnected(self, txt=""):
 		self.on_stopped() # Reset GUI to a "stopped" state 
@@ -183,11 +193,13 @@ class StartQT(QtGui.QMainWindow):
 
 		self.ui.txt_status.appendPlainText("Disconnected : " + txt)
 
+
 	def on_samples(self):
 		self.ui.btn_get.setText("Stop")
 		self.ui.btn_get.clicked.disconnect()
 		self.ui.btn_get.clicked.connect(bt.slot_stop)
 		self.ui.txt_status.appendPlainText("Samples")
+
 
 	def on_stopped(self):
 		self.ui.btn_get.setText("Sample")
@@ -196,9 +208,12 @@ class StartQT(QtGui.QMainWindow):
 		self.ui.btn_get.clicked.connect(bt.slot_sample)
 		self.ui.txt_status.appendPlainText("Stopped")
 
+
 	def closeEvent(self, event):
 		print("Stopping thread")
 		_worker_thread.quit()
+
+
 
 if __name__ == "__main__":
 	if len(sys.argv) > 1:
