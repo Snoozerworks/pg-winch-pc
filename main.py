@@ -48,7 +48,7 @@ class StartQT(QtGui.QMainWindow):
 
 		# Load GUI
 		QtGui.QWidget.__init__(self, parent)
-		self.ui = uic.loadUi(APP_ROOT+ "/AppUI.ui", self)
+		self.ui = uic.loadUi(os.path.join(APP_ROOT, "AppUI.ui"), self)
 
 		# Load settings
 		self.conf 				 = configparser.ConfigParser()
@@ -58,7 +58,7 @@ class StartQT(QtGui.QMainWindow):
 		if os.path.isfile(APP_CONFIG_FILE):
 			self.conf.read_file(open(APP_CONFIG_FILE, mode="rt", encoding="utf8"))
 		if conf.get("log-path") == None:
-			conf["log-path"] = APP_ROOT + "/log"
+			conf["log-path"] = os.path.join(APP_ROOT, "log")
 
 		# Setup the datalog
 		self.log 			 = log.DataLog(LOG_LENGTH)  # records to save
@@ -74,8 +74,8 @@ class StartQT(QtGui.QMainWindow):
 		print("PATH=" + conf["log-path"])
 		self.ui.lineEdit_log_folder.setText(conf["log-path"])
 		def onPathChange():
-			d = QtGui.QFileDialog.getExistingDirectory()
-			if d == None: return
+			d = QtGui.QFileDialog.getExistingDirectory(directory=conf["log-path"])
+			if d == "": return
 			self.ui.lineEdit_log_folder.setText(d)
 			conf["log-path"] = d
 			self.log_path = d
@@ -151,7 +151,7 @@ class StartQT(QtGui.QMainWindow):
 		filecount = 0
 		os.listdir()
 		try:
-			for file in os.listdir("{}/log".format(self.conf["winch"]["log-path"])):
+			for file in os.listdir(os.path.join(self.conf["winch"]["log-path"], "log")):
 				if fnmatch.fnmatch(file, '*.csv'):
 					filecount += 1
 		except FileNotFoundError:

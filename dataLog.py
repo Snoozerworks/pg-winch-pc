@@ -98,7 +98,7 @@ class DataLog(QObject):
 			print("File not saved. Invalid directory " + self.log_path)
 			return
 			
-		fname = "{}/rec_{}.csv".format(self.log_path, now.strftime("%Y%m%dT%H%M%S"))
+		fname = os.path.join(self.log_path, "rec_{}.csv".format(now.strftime("%Y%m%dT%H%M%S")))
 		print("Save %d samples in file %s" % (self.length, fname))
 
 		with open(fname, mode='wt', encoding='utf-8') as f:
