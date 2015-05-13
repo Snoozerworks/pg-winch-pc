@@ -48,7 +48,7 @@ class StartQT(QtGui.QMainWindow):
 
 		# Load GUI
 		QtGui.QWidget.__init__(self, parent)
-		self.ui = uic.loadUi("AppUI.ui", self)
+		self.ui = uic.loadUi(APP_ROOT+ "/AppUI.ui", self)
 
 		# Load settings
 		self.conf 				 = configparser.ConfigParser()
