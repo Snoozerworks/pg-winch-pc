@@ -168,6 +168,7 @@ class Sample():
 		("errors", "u1"),
 		("pump_spd", "u1"),
 		("drum_spd", "u1"),
+		("engine_spd", "u1"),
 		("temp", ">i2"),
 		("pres", ">i2")])
 
@@ -175,6 +176,7 @@ class Sample():
 
 	pump_buffer = _avgBuffer(0, 10)  # Average for tacho pump
 	drum_buffer = _avgBuffer(0, 10)  # Average for tacho drum
+	engine_buffer = _avgBuffer(0, 10)  # Average for tacho engine 
 	time_buffer = _avgBuffer(200, 20)  # Average for sample period
 	_tx_time = [0, 0]  # Transmitting times
 	_rx_time = [time.time(), time.time()]  # Receiving times
@@ -211,20 +213,21 @@ class Sample():
 
 		Sample.pump_buffer.add(self.data["pump_spd"])
 		Sample.drum_buffer.add(self.data["drum_spd"])
+		Sample.engine_buffer.add(self.data["engine_spd"])
 		Sample._dt = (Sample._rx_time[0] - Sample._rx_time[1]) * 1000.0
 		Sample.time_buffer.add(Sample._dt)
 
 
 	def to_csv(self):
 		""" Return fields as a comma separated string. """
-		frmt = "{time},{mode},{errors},{pump_spd},{drum_spd},{temp},{pres}"
+		frmt = "{time},{mode},{errors},{pump_spd},{drum_spd},{engine_spd},{temp},{pres}"
 		return frmt.format_map(self)
 
 
 	@staticmethod
 	def csvHeader():
 		""" Return comma separated headers for csv format """
-		return "time,mode,errors,pump_speed_raw,drum_speed_raw,temp,pres\n";
+		return "time,mode,errors,pump_speed,drum_speed,engine_speed,temp,pres\n";
 
 
 	def __str__(self):
@@ -234,6 +237,7 @@ class Sample():
 		s += "	on time\t\t: {:6d} ms\n".format(self.data["time"])
 		s += "	pump speed\t: {:4d}({:4.0f}) rpm\n".format(self.data["pump_spd"], Sample.pump_buffer.sum)
 		s += "	drum speed\t: {:4d}({:4.0f}) rpm\n".format(self.data["drum_spd"], Sample.drum_buffer.sum)
+		s += "	engine speed\t: {:4d}({:4.0f}) rpm\n".format(self.data["engine_spd"], Sample.engine_buffer.sum)
 		s += "	period\t\t: {:4.0f} ms\n".format(Sample._tx_time[0] - Sample._tx_time[1])
 		s += "	temperature\t: {:4.0f} deg C\n".format(self.data["temp"])
 		s += "	pressure\t\t: {:4.0f} bar\n".format(self.data["pres"])

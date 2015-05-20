@@ -112,6 +112,7 @@ class StartQT(QtGui.QMainWindow):
 		# Connect graph line checkboxes
 		self.ui.chk_pump.clicked.connect(lambda checked: self.ui.graph.show_signal(PlotSignals.TACH_DRUM, checked))
 		self.ui.chk_drum.clicked.connect(lambda checked: self.ui.graph.show_signal(PlotSignals.TACH_PUMP, checked))
+		self.ui.chk_engine.clicked.connect(lambda checked: self.ui.graph.show_signal(PlotSignals.TACH_ENGINE, checked))
 		self.ui.chk_pres.clicked.connect(lambda checked: self.ui.graph.show_signal(PlotSignals.PRES, checked))
 		self.ui.chk_temp.clicked.connect(lambda checked: self.ui.graph.show_signal(PlotSignals.TEMP, checked))
 

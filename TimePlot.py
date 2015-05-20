@@ -12,8 +12,9 @@ from dataLog import DataLog
 class PlotSignals(Enum):
 	TACH_PUMP = 1
 	TACH_DRUM = 2
-	PRES = 3
-	TEMP = 4
+	TACH_ENGINE = 3
+	PRES = 4
+	TEMP = 5
 
 
 class TimePlot(PlotWidget):
@@ -25,6 +26,7 @@ class TimePlot(PlotWidget):
 		super(TimePlot, self).__init__(params);
 		self.signals = [PlotSignals.TACH_DRUM,
 						PlotSignals.TACH_PUMP,
+						PlotSignals.TACH_ENGINE,
 						PlotSignals.PRES,
 						PlotSignals.TEMP]
 		self._log = DataLog(1)
@@ -71,10 +73,12 @@ class TimePlot(PlotWidget):
 
 		self.getPlotItem().clear()
 		if PlotSignals.TACH_DRUM in self.signals:
-			self.getPlotItem().plot(self._log.samples["drum_spd"], pen={'color': (1, 4), "width": 3});
+			self.getPlotItem().plot(self._log.samples["drum_spd"], pen={'color': (1, 5), "width": 3});
 		if PlotSignals.TACH_PUMP in self.signals:
-			self.getPlotItem().plot(self._log.samples["pump_spd"], pen={'color': (2, 4), "width": 3});
+			self.getPlotItem().plot(self._log.samples["pump_spd"], pen={'color': (2, 5), "width": 3});
+		if PlotSignals.TACH_ENGINE in self.signals:
+			self.getPlotItem().plot(self._log.samples["engine_spd"], pen={'color': (3, 5), "width": 3});
 		if PlotSignals.PRES in self.signals:
-			self.getPlotItem().plot(self._log.samples["pres"], pen={'color': (3, 4), "width": 3});
+			self.getPlotItem().plot(self._log.samples["pres"], pen={'color': (4, 5), "width": 3});
 		if PlotSignals.TEMP in self.signals:
-			self.getPlotItem().plot(self._log.samples["temp"], pen={'color': (4, 4), "width": 3});
+			self.getPlotItem().plot(self._log.samples["temp"], pen={'color': (5, 5), "width": 3});

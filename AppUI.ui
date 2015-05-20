@@ -82,7 +82,7 @@
          </layout>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0,0,0,0,0,0,0,1">
+         <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0,0,0,0,0,0,0,0,1">
           <property name="spacing">
            <number>4</number>
           </property>
@@ -162,6 +162,16 @@
            <widget class="QCheckBox" name="chk_drum">
             <property name="text">
              <string>Drum rpm</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="chk_engine">
+            <property name="text">
+             <string>Engine rpm</string>
             </property>
             <property name="checked">
              <bool>true</bool>
